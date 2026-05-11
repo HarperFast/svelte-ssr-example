@@ -1,3 +1,4 @@
+import { tables } from 'harper';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -48,8 +49,9 @@ tables.BlogCache.sourcedFrom(PageBuilder);
 export class CachedBlog extends tables.BlogCache {
 	async get() {
 		return {
-			contentType: 'text/html',
-			data: this.content,
+			status: 200,
+			headers: { 'Content-Type': 'text/html' },
+			body: this.content,
 		};
 	}
 }
