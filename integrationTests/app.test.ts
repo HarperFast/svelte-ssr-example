@@ -85,16 +85,16 @@ void suite('svelte-ssr-example', (ctx: ContextWithHarper) => {
 	// --- Harper multi-tier caching behavior (mirrors caching-test.js) ---
 
 	void test('CachedBlog returns SSR HTML and honors conditional cache headers', async () => {
-		// 1. Prime the cache (SSR render through the BlogCache source). On the
-		// first (cache-fill) request Harper may serve the freshly sourced
-		// BlogCache record as JSON ({ content: "<html>..." }) rather than the
-		// CachedBlog.get HTML response, so assert the SSR HTML is present in
-		// whichever shape comes back rather than hard-asserting Content-Type.
+		// 1. Prime the cache (SSR render through the BlogCache source) and
+		// confirm it carries the SSR'd page. On the first (cache-fill) request
+		// Harper may serve the freshly sourced BlogCache record (as a
+		// JSON-wrapped record) rather than the CachedBlog.get text/html
+		// response, so assert the SSR marker appears in the raw body regardless
+		// of which shape comes back rather than depending on a specific field.
 		const r1 = await hFetch(ctx, '/CachedBlog/0');
 		strictEqual(r1.status, 200);
 		const r1Body = await r1.text();
-		const r1Html = r1Body.trimStart().startsWith('{') ? (JSON.parse(r1Body) as { content: string }).content : r1Body;
-		match(r1Html, /Hello, World!/);
+		ok(r1Body.includes('Hello, World!'), `expected SSR'd page in response, got: ${r1Body.slice(0, 200)}`);
 
 		const etag = r1.headers.get('ETag');
 		const lastModified = r1.headers.get('Last-Modified');
