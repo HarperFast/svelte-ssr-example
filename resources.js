@@ -40,21 +40,21 @@ export class UncachedBlog extends tables.Post {
 class PageBuilder extends tables.Post {
 	static async get(target) {
 		const post = await tables.Post.get(target);
+		// Return a full HTTP response descriptor. Harper's caching layer parses
+		// a sourced `{ status, headers, body }` response, stores the body (with
+		// its Content-Type) in the cache table, and serves it on cache hits.
 		return {
-			content: await renderPost(post),
+			status: 200,
+			headers: { 'Content-Type': 'text/html' },
+			body: await renderPost(post),
 		};
 	}
 }
 
 tables.BlogCache.sourcedFrom(PageBuilder);
 
-export class CachedBlog extends tables.BlogCache {
-	static async get(target) {
-		const cached = await tables.BlogCache.get(target);
-		return {
-			status: 200,
-			headers: { 'Content-Type': 'text/html' },
-			body: cached.content,
-		};
-	}
-}
+// CachedBlog serves the cached page directly. The cached record already
+// carries the rendered HTML body and its Content-Type (populated from the
+// PageBuilder source response above), so Harper serves it with the correct
+// headers and handles conditional-request revalidation (ETag / 304).
+export class CachedBlog extends tables.BlogCache {}
