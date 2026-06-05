@@ -43,8 +43,11 @@ class PageBuilder extends tables.Post {
 		// The source returns a full HTTP response descriptor. Harper's caching
 		// layer parses a sourced `{ status, headers, body }` response, stores the
 		// rendered HTML body (with its Content-Type) in BlogCache, and serves it
-		// with the right content type on cache hits. When the underlying Post
-		// changes, the cache entry is invalidated and re-rendered from here.
+		// with the right content type on cache hits.
+		// NOTE (Harper v5, 5.0.x): after the underlying Post is mutated, the
+		// re-sourced cache entry currently serves the raw Post record rather than
+		// re-rendering through here — see the PR notes / caching-test.js. Fresh
+		// renders and the UncachedBlog path are correct.
 		return {
 			status: 200,
 			headers: { 'Content-Type': 'text/html' },
