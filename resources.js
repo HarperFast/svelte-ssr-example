@@ -29,6 +29,7 @@ async function renderPost(post) {
 export class UncachedBlog extends tables.Post {
 	static async get(target) {
 		const post = await tables.Post.get(target);
+		if (!post) return { status: 404, body: 'Not Found' };
 		return {
 			status: 200,
 			headers: { 'Content-Type': 'text/html' },
@@ -40,6 +41,7 @@ export class UncachedBlog extends tables.Post {
 class PageBuilder extends tables.Post {
 	static async get(target) {
 		const post = await tables.Post.get(target);
+		if (!post) return { status: 404, body: 'Not Found' };
 		// The source returns a full HTTP response descriptor. Harper's caching
 		// layer parses a sourced `{ status, headers, body }` response, stores the
 		// rendered HTML body (with its Content-Type) in BlogCache, and serves it
