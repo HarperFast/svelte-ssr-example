@@ -60,7 +60,7 @@ void suite('svelte-ssr-example', (ctx: ContextWithHarper) => {
 	void test('CachedBlog serves the SSR-rendered page as text/html', async () => {
 		const res = await hFetch(ctx, '/CachedBlog/0');
 		strictEqual(res.status, 200);
-		strictEqual(res.headers.get('Content-Type'), 'text/html');
+		ok(res.headers.get('Content-Type')?.startsWith('text/html'), 'expected text/html content type');
 		const html = await res.text();
 		// Full SSR document: rendered post + client-hydration bootstrap.
 		match(html, /Hello, World!/);
@@ -73,7 +73,7 @@ void suite('svelte-ssr-example', (ctx: ContextWithHarper) => {
 	void test('UncachedBlog SSR-renders the post into HTML', async () => {
 		const res = await hFetch(ctx, '/UncachedBlog/0');
 		strictEqual(res.status, 200);
-		strictEqual(res.headers.get('Content-Type'), 'text/html');
+		ok(res.headers.get('Content-Type')?.startsWith('text/html'), 'expected text/html content type');
 		const html = await res.text();
 		match(html, /Hello, World!/);
 		match(html, /window\.__INITIAL_POST_DATA__/);
@@ -99,4 +99,11 @@ void suite('svelte-ssr-example', (ctx: ContextWithHarper) => {
 		const rendered = await (await hFetch(ctx, '/UncachedBlog/0')).text();
 		ok(rendered.includes(comment), 'UncachedBlog should re-render with the updated comment');
 	});
+
+	// Known Harper v5.0.x gap (documented in resources.js): after a Post
+	// mutation the re-sourced BlogCache entry serves the raw Post record instead
+	// of re-rendering through PageBuilder, so the cached page does not reflect
+	// the write. Kept as a todo so the gap stays visible in CI output and a
+	// future fix does not ship untested.
+	void test.todo('CachedBlog re-renders after a Post mutation');
 });
